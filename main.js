@@ -122,7 +122,7 @@ class MainDialog extends soui4.JsHostWnd{
 	
 		console.log("start ws server at port:"+port+" ret="+ret);
 		if(ret == 0){
-			this.FindIChildByName("btn_start").EnableWindow(false);
+			this.FindIChildByName("btn_start").EnableWindow(false,true);
 		}else{
 			soui4.SMessageBox(this.GetHwnd(),"start server ret:"+ret,"error",soui4.MB_OK|soui4.MB_ICONERROR);
 		}

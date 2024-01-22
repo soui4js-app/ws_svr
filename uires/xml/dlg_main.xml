@@ -17,7 +17,7 @@ translucent="1"
     <window size="-2,0" weight="1" padding="5" layout="vbox">
 		<window size="-2,30" layout="hbox" gravity="center">
 			<text text="port:"/>
-			<edit size="80,-2" name="edit_port" text="4043"/>			
+			<edit size="80,-2" name="edit_port" text="4043" margin="2"/>			
 			<button size="100,30" name="btn_start" text="start" tip="start ws server"/>
 		</window>
 		<richedit size="-2,0" weight="1" name="edit_peers" multilines="1" hasVscrollBar="1" margin="2"/>
