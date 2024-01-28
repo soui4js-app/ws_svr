@@ -1,7 +1,6 @@
 ﻿import * as soui4 from "soui4";
 import * as std from "std";
 import {R} from "uires/R.js";
-import { IConnection } from "ws4js";
 import * as ws4js from "ws4js.dll"
 
 var g_workDir="";
@@ -74,7 +73,7 @@ class WsServer extends ws4js.WsServer{
 
 	/**
 	 * 新连接回调
-	 * @param {IConnection} conn 
+	 * @param {ws4js.IConnection} conn 
 	 * @param {string} uriPath 
 	 * @param {string} uriArgs 
 	 * @returns 接受连接返回true,否则返回false
@@ -97,7 +96,7 @@ class WsServer extends ws4js.WsServer{
 
 	/**
 	 * 连接断开
-	 * @param {IConnection} conn 
+	 * @param {ws4js.IConnection} conn 
 	 */
 	onDiscon(conn){
 		console.log("conn break, id="+conn.getId());
@@ -108,7 +107,7 @@ class WsServer extends ws4js.WsServer{
 
 	/**
 	 * 收到文本消息回调
-	 * @param {IConnection} conn 
+	 * @param {ws4js.IConnection} conn 
 	 * @param {string} str 
 	 */
 	onText2(conn,str){
