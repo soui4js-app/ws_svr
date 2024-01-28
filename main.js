@@ -1,21 +1,32 @@
 ﻿import * as soui4 from "soui4";
 import * as std from "std";
 import {R} from "uires/R.js";
+import { IConnection } from "ws4js";
 import * as ws4js from "ws4js.dll"
 
 var g_workDir="";
 
+/**
+ * 聊天室服务器模块，从ws4js.WsServer继承。
+ * ws4js.WsServer是一个基于libwebsocket实现的js版本websocket server
+ */
 class WsServer extends ws4js.WsServer{
     constructor(mainDlg){
 		super();
 		this.mainDlg = mainDlg;
 		this.startId = 0;
-		this.conns = new Map();
+		this.conns = new Map();//new一个map对象来管理客户端连接。
+		//处理websocket server 3个回调函数
 		this.onConnected = this.onConn;
 		this.onDisconnect = this.onDiscon;
 		this.onText = this.onText2;
 	}
 
+	/**
+	 * 解析websocket连接参数,将p1=a&p2=b这样的格式转换成{p1:a,p2:b}这样的js对象。
+	 * @param {string} uriArgs 连接参数
+	 * @returns js对象
+	 */
 	getArgsObj(uriArgs){
 		var regex = /(\w+)=([^&=]+)/g;
 		var match;
@@ -29,6 +40,10 @@ class WsServer extends ws4js.WsServer{
 		return values;
 	}
 
+	/**
+	 * 获取当前所有连接的js对象，以便显示到界面中。
+	 * @returns 
+	 */
 	getPeers(){
 		let ret = [];
 		this.conns.forEach(function(value,key){
@@ -37,12 +52,19 @@ class WsServer extends ws4js.WsServer{
 		return ret;
 	}
 
+	/**
+	 * 将字符数据广播到所有连接
+	 * @param {string} str 
+	 */
 	broadcast(str){
 		this.conns.forEach(function(value,key){
 			value.conn.sendText(str,-1);
 		});
 	}
 
+	/**
+	 * 将当前所有连接的name,id信息广播到所有连接。
+	 */
 	updatePeers(){
 		let peers = this.getPeers();
 		let data = {type:"peers",peers:peers};
@@ -50,6 +72,13 @@ class WsServer extends ws4js.WsServer{
 		this.mainDlg.updatePeers(peers);
 	}
 
+	/**
+	 * 新连接回调
+	 * @param {IConnection} conn 
+	 * @param {string} uriPath 
+	 * @param {string} uriArgs 
+	 * @returns 接受连接返回true,否则返回false
+	 */
 	onConn(conn,uriPath,uriArgs){
 		console.log("path="+uriPath+" args="+uriArgs);
 		this.startId += 1;
@@ -66,6 +95,10 @@ class WsServer extends ws4js.WsServer{
 		return true;
 	}
 
+	/**
+	 * 连接断开
+	 * @param {IConnection} conn 
+	 */
 	onDiscon(conn){
 		console.log("conn break, id="+conn.getId());
 		this.conns.delete(conn.getId());
@@ -73,6 +106,11 @@ class WsServer extends ws4js.WsServer{
 		this.updatePeers();
 	}
 
+	/**
+	 * 收到文本消息回调
+	 * @param {IConnection} conn 
+	 * @param {string} str 
+	 */
 	onText2(conn,str){
 		console.log("recv from "+conn.getId() + " text="+str);
 		try{
@@ -111,6 +149,10 @@ class MainDialog extends soui4.JsHostWnd{
 		return false;
 	}
 	
+	/**
+	 * start按钮响应函数
+	 * @param {soui4.IEvtArgs} e 
+	 */
 	onBtnStart(e){
 		console.log("start server");
 		let edit_port = this.FindIChildByName("edit_port");
@@ -128,6 +170,10 @@ class MainDialog extends soui4.JsHostWnd{
 		}
 	}
 
+	/**
+	 * 将peer转换成字符串显示到窗口上
+	 * @param {object} peers 
+	 */
 	updatePeers(peers){
 		let txt = "";
 		for(let i=0;i<peers.length;i++){
@@ -136,11 +182,18 @@ class MainDialog extends soui4.JsHostWnd{
 		this.FindIChildByName("edit_peers").SetWindowText(txt);
 	}
 
+	/**
+	 * 初始化，创建wsserver对象
+	 */
 	init(){
 		console.log("init");
 		this.ws_svr = new WsServer(this);
 		soui4.SConnect(this.FindIChildByName("btn_start"),soui4.EVT_CMD,this,this.onBtnStart);
 	}
+
+	/**
+	 * 程序退出，关闭wsserver对象
+	 */
 	uninit(){
 		this.ws_svr.quit();
 		this.ws_svr = null;
@@ -149,7 +202,13 @@ class MainDialog extends soui4.JsHostWnd{
 	}
 };
 
-
+/**
+ * 主函数
+ * @param {soui4.HINSTANCE} inst 
+ * @param {string} workDir 工作路径
+ * @param {string} args 程序启动参数
+ * @returns {int} 
+ */
 function main(inst,workDir,args)
 {
 	soui4.log(workDir);
